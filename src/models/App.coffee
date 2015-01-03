@@ -7,9 +7,14 @@ class window.App extends Backbone.Model
     @set 'dealerHand', deck.dealDealer()
     console.dir(@get 'dealerHand')
     window.checker = @get 'dealerHand'
-    @get('dealerHand').on "dealerHasBlackJack", ->
+    @get('dealerHand').on "dealerHasBlackJack", =>
       @dealerHasBlackJack()
-    @get('playerHand').on("bust", ->@bust())
+    @get('playerHand').on("bust", =>
+     @bust())
+    @get('playerHand').on("stand", =>
+     @stand())
+    @get('dealerHand').on("bust", =>
+     @trigger('win'))
     return
   dealerHasBlackJack: ->
     ###
@@ -26,8 +31,23 @@ class window.App extends Backbone.Model
       @trigger("lose")
 
   showDown: (dealerHand, playerHand) ->
+    dealerScore = @get('dealerHand').trueScore()
+    playerScore = @get('playerHand').trueScore()
+    if dealerScore is playerScore
+      @trigger('push')
+    else if dealerScore > playerScore
+      @trigger('lose')
+    else if dealerScore < playerScore
+      @trigger('win')
 
   bust: ->
     console.log "lose"
     @trigger("lose")
+
+  stand: ->
+    @get('dealerHand').at(0).flip()
+    while @get('dealerHand').trueScore() < 17
+      @get('dealerHand').hit()
+    if @get('dealerHand').trueScore() < 22
+      @showDown(@get('dealerHand'), @get('playerHand'))
 
